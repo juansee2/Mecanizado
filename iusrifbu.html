@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Procesos de Maquinado</title>
+    <style>
+        /* Estilos de fuente y espacio base */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Título principal */
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Botones */
+        button {
+            background-color: #4a90e2;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        /* Etiquetas e input */
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* Sección de resultados */
+        .result-section {
+            padding: 10px;
+            background-color: #e8f4fd;
+            border: 1px solid #b3d4fc;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        /* Ocultar contenido */
+        .hidden {
+            display: none;
+        }
+
+        /* Eliminar las flechas de los campos numéricos */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cálculo de Procesos de Maquinado</h1>
+        <div>
+            <button onclick="mostrarDatos('torneado')">Torneado</button>
+            <button onclick="mostrarDatos('fresado')">Fresado</button>
+            <button onclick="mostrarDatos('perforado')">Perforado</button>
+        </div>
+
+        <div id="data-input" class="hidden">
+            <h3 id="process-title" style="color: #4a90e2; margin-top: 20px;">Proceso de Torneado</h3>
+
+            <label for="potencia-max">Potencia Máxima [kW]</label>
+            <input type="number" id="potencia-max" placeholder="Potencia máxima" required>
+
+            <label for="diametro-inicial">Øi [mm]</label>
+            <input type="number" id="diametro-inicial" placeholder="Diámetro inicial" required>
+
+            <label for="diametro-final">Øf [mm]</label>
+            <input type="number" id="diametro-final" placeholder="Diámetro final" required>
+
+            <label for="velocidad-corte">Vc [m/min]</label>
+            <input type="number" id="velocidad-corte" placeholder="Velocidad de corte" required>
+
+            <label for="avance">fn [mm]</label>
+            <input type="number" id="avance" placeholder="Avance por vuelta" required>
+
+            <label for="longitud">lw [mm]</label>
+            <input type="number" id="longitud" placeholder="Longitud de la pieza" required>
+
+            <label for="eficiencia">η</label>
+            <input type="number" id="eficiencia" placeholder="Eficiencia" required>
+
+            <label for="constante-corte">Kc [N/mm²]</label>
+            <input type="number" id="constante-corte" placeholder="Constante de corte" required>
+
+            <!-- Campos de ap1 mínimo y máximo -->
+            <label for="ap1-min">ap₁ Mínimo [mm]</label>
+            <input type="number" id="ap1-min" placeholder="ap₁ mínimo" required step="0.1">
+
+            <label for="ap1-max">ap₁ Máximo [mm]</label>
+            <input type="number" id="ap1-max" placeholder="ap₁ máximo" required step="0.1">
+
+            <button onclick="calcularResultados()">Calcular</button>
+
+            <h4 style="color: #4a90e2; margin-top: 20px;">Resultados:</h4>
+            <div id="output" class="result-section hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        function mostrarDatos(proceso) {
+            document.getElementById("data-input").classList.remove("hidden");
+            document.getElementById("process-title").innerText = `Proceso de ${proceso.charAt(0).toUpperCase() + proceso.slice(1)}`;
+        }
+
+        function calcularResultados() {
+            const potenciaMax = parseFloat(document.getElementById("potencia-max").value);
+            const di = parseFloat(document.getElementById("diametro-inicial").value);
+            const df = parseFloat(document.getElementById("diametro-final").value);
+            const vc = parseFloat(document.getElementById("velocidad-corte").value);
+            const fn = parseFloat(document.getElementById("avance").value);
+            const lw = parseFloat(document.getElementById("longitud").value);
+            const eta = parseFloat(document.getElementById("eficiencia").value);
+            const kc = parseFloat(document.getElementById("constante-corte").value);
+            const ap1Min = parseFloat(document.getElementById("ap1-min").value);
+            const ap1Max = parseFloat(document.getElementById("ap1-max").value);
+
+            const ap = (di - df) / 2;
+            const oc = (di + df) / 2;
+
+            if (isNaN(potenciaMax) || isNaN(di) || isNaN(df) || isNaN(vc) || 
+                isNaN(fn) || isNaN(lw) || isNaN(eta) || isNaN(kc) || 
+                isNaN(ap1Min) || isNaN(ap1Max)) {
+                alert("Por favor, ingresa todos los valores correctamente.");
+                return;
+            }
+
+            if (oc <= 0) {
+                alert("El diámetro de la pieza no puede ser igual o menor a cero. Por favor, verifica los valores.");
+                return;
+            }
+
+            const nCalc = vc * 1000 / (Math.PI * oc);
+            const vf = fn * nCalc;
+
+            if (vf <= 0) {
+                alert("El avance por vuelta y la velocidad de corte deben ser mayores a cero.");
+                return;
+            }
+
+            let N = 1;
+            let ap1 = ap1Max;
+
+            while ((N * ap1 < ap || (vc * fn * ap1 * kc) / (eta * 60000) > potenciaMax) && ap1 >= ap1Min) {
+                N++;
+                ap1 = parseFloat((ap / N).toFixed(1));
+            }
+
+            if (ap1 < ap1Min) {
+                alert("No se puede cumplir con la potencia máxima dentro del rango de ap₁ proporcionado.");
+                return;
+            }
+
+            const pmecFinal = (vc * fn * ap1 * kc) / 60000;
+            const pmaqFinal = pmecFinal / eta;
+
+            document.getElementById("output").innerHTML = `
+                ap: ${ap.toFixed(2)} mm<br>
+                ap₁: ${ap1.toFixed(1)} mm<br>
+                Pasadas (N): ${N}<br>
+                Tiempo de maquinado (tm): ${(lw * N / vf * 60).toFixed(2)} s<br>
+                Potencia mecánica (Pmec): ${pmecFinal.toFixed(2)} kW<br>
+                Potencia de la máquina (Pmaq): ${pmaqFinal.toFixed(2)} kW<br>
+            `;
+            document.getElementById("output").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
